@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE JobConfiguration PUBLIC "" "JobConfig.dtd">
+
+<!-- OutputLevel controls which messages are printed; set to VERBOSE or DEBUG for more verbosity, to WARNING or ERROR for less -->
+<JobConfiguration JobName="ExampleCycleJob" OutputLevel="INFO">
+    <Library Name="libSUHH2Delphes2UHH2Converter"/>
+    <Package Name="SUHH2Delphes2UHH2Converter.par" />
+
+   <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="./" PostFix="" TargetLumi="1" >
+
+        <!-- Verion attribute must have year in it, same as used in ntuple config, e.g. 2018, 2016v3, etc -->
+
+        <InputData Lumi="1" NEventsMax="10" Type="MC" Version="Example_2018" Cacheable="False">
+            <In FileName="Delphes2UHH2Converter/Delphes2UHH2ConverterTree.root" Lumi="0.0"/>
+            <InputTree Name="UHH2TreeFromDelphes" />
+        </InputData>
+
+	<!--
+        <InputData Lumi="1" NEventsMax="10" Type="MC" Version="Example_2018" Cacheable="False">
+            <In FileName="test_input/Ntuple_UHH2_TTZ.root" Lumi="0.0"/>
+            <InputTree Name="AnalysisTree" />
+        </InputData>
+	-->
+
+        <UserConfig>
+
+            <Item Name="PrimaryVertexCollection" Value="offlineSlimmedPrimaryVertices" />
+            <Item Name="ElectronCollection" Value="slimmedElectronsUSER" />
+            <Item Name="MuonCollection" Value="slimmedMuonsUSER" />
+            <Item Name="JetCollection" Value="jetsAk4CHS" />
+            <Item Name="GenJetCollection" Value="slimmedGenJets" />
+            <Item Name="METName" Value="slimmedMETs" />
+
+
+            <!-- the class name of the AnalysisModule subclasses to run: -->
+            <Item Name="AnalysisModule" Value="Delphes2UHH2ConverterModule" />
+
+            <!-- tell AnalysisModuleRunner NOT to use the MC event weight from SFrame; rather let
+                 MCLumiWeight (called via CommonModules) calculate the MC event weight. The MC
+                 event weight assigned by MCLumiWeight is InputData.Lumi / Cycle.TargetLumi. -->
+            <Item Name="use_sframe_weight" Value="false" />
+
+            <!-- configuration for MCPileupReweight (run as part of CommonModules): -->
+            <Item Name="pileup_directory" Value="common/data/2018/MyMCPileupHistogram.root" />
+            <Item Name="pileup_directory_data" Value="common/data/2018/MyDataPileupHistogram2018.root" />
+
+	    <!--
+            <Item Name="readTrigger" Value="false" />
+	    -->
+	    
+        </UserConfig>
+    </Cycle>
+</JobConfiguration>
