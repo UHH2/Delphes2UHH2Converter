@@ -27,9 +27,10 @@
             <Item Name="PrimaryVertexCollection" Value="offlineSlimmedPrimaryVertices" />
             <Item Name="ElectronCollection" Value="slimmedElectronsUSER" />
             <Item Name="MuonCollection" Value="slimmedMuonsUSER" />
-            <Item Name="JetCollection" Value="jetsAk4CHS" />
+            <Item Name="JetCollection" Value="jetsAk4Puppi" />
             <Item Name="GenJetCollection" Value="slimmedGenJets" />
-            <Item Name="METName" Value="slimmedMETs" />
+            <Item Name="METName" Value="slimmedMETsPuppi" />
+	    <Item Name="GenParticleCollection"   Value="GenParticles"/>
 
 
             <!-- the class name of the AnalysisModule subclasses to run: -->
