@@ -12,6 +12,7 @@
 #include "UHH2/core/include/Electron.h"
 #include "UHH2/core/include/GenInfo.h"
 #include "UHH2/core/include/GenJet.h"
+#include "UHH2/core/include/GenParticle.h"
 #include "UHH2/core/include/Jet.h"
 #include "UHH2/core/include/MET.h"
 #include "UHH2/core/include/Muon.h"
@@ -56,6 +57,7 @@ void run(const TString& in_file_name,
   std::vector<Muon> muons;
   std::vector<Jet> jets;
   std::vector<GenJet> genjets;
+  std::vector<GenParticle> genparticles;
   MET MEt;  
   
 
@@ -86,9 +88,10 @@ void run(const TString& in_file_name,
   out_tree->Branch("offlineSlimmedPrimaryVertices","std::vector<PrimaryVertex>",&pvs);
   out_tree->Branch("slimmedElectronsUSER","std::vector<Electron>",&electrons);
   out_tree->Branch("slimmedMuonsUSER","std::vector<Muon>",&muons);
-  out_tree->Branch("jetsAk4CHS","std::vector<Jet>",&jets);
+  out_tree->Branch("jetsAk4Puppi","std::vector<Jet>",&jets);
   out_tree->Branch("slimmedGenJets","std::vector<GenJet>",&genjets);
-  out_tree->Branch("slimmedMETs",&MEt);
+  out_tree->Branch("GenParticles","std::vector<GenParticle>",&genparticles);
+  out_tree->Branch("slimmedMETsPuppi",&MEt);
 
 
   // Set up the readers
@@ -118,6 +121,9 @@ void run(const TString& in_file_name,
     GenJet genjet1;
     genjet1.set_pt(100);
     genjets.push_back(genjet1);
+
+    genparticles.clear();
+    genparticles.push_back(GenParticle());
 
     out_tree->Fill();
   }
