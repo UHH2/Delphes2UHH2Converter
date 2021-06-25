@@ -59,11 +59,15 @@ void JetReader::read() {
     // b-tagging: in Delphes tree, we have 0 or 1 (which tagger?)
     // Put some sensible translation:
     if( m_jet_btag->at(i) == 1 ) {
-      jet.set_btag_DeepFlavour_probb( 1. );
-      jet.set_btag_DeepCSV_probb(     1. );
+      jet.set_btag_DeepFlavour_probb( 0.9 );
+      jet.set_btag_DeepCSV_probb(     0.9 );
+      jet.set_btag_combinedSecondaryVertex( 0.9 );
+      jet.set_btag_combinedSecondaryVertexMVA( 0.9 );
     } else {
-      jet.set_btag_DeepFlavour_probb( 0. );
-      jet.set_btag_DeepCSV_probb(     0. );
+      jet.set_btag_DeepFlavour_probb( 0.1 );
+      jet.set_btag_DeepCSV_probb(     0.1 );
+      jet.set_btag_combinedSecondaryVertex( 0.1 );
+      jet.set_btag_combinedSecondaryVertexMVA( 0.1 );
     }
 
     // Need to check which flavour definition is used in Delphes
