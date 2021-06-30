@@ -141,14 +141,24 @@ int main(int argc, char** argv) {
 
   if( argc < 2 ) {
     std::cout << "No input file given." << std::endl;
-    std::cout << "Execute as 'convertDelphes2UHH2 <input_file.root>'." << std::endl;
+    std::cout << "Execute as 'convertDelphes2UHH2 <input_file.root> [<max. number events>]'." << std::endl;
     return 1;
   }
 
   const TString delphes_file( argv[1] );
   const TString delphes_tree = "Delphes";
   const TString out_file = "Delphes2UHH2ConverterTree.root";
-  const int n_max_evts = 20;
+  
+  int n_max_evts = -1;
+  if( argc > 2 ) {
+    try {
+      n_max_evts = std::stoi( argv[2] );
+    } catch (std::exception const &e) {
+      std::cerr << "ERROR: second argument given is not an integer number" << std::endl;
+      std::cout << "Execute as 'convertDelphes2UHH2 <input_file.root> [<max. number events>]'." << std::endl;
+      return 1;
+    }
+  }
 
   run(delphes_file,delphes_tree,out_file,n_max_evts);
 
