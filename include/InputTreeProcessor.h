@@ -23,6 +23,7 @@ public:
     return load_next_event(n_max_evts);
   }
   bool load_next_event(int n_max_evts = -1);
+  long entry() const { return m_entry; }
 
 
 private:

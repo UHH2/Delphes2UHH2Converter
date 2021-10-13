@@ -47,10 +47,10 @@ void JetReader::init() {
 
 void JetReader::read() {
   m_jets.clear();
-  
+
   for(size_t i = 0; i < m_jet_pt->size(); ++i) {
     Jet jet;
-
+    
     // Kinematic properties, well defined
     jet.set_pt(  m_jet_pt->at(i)     );
     jet.set_eta( m_jet_eta->at(i)    );
@@ -59,12 +59,16 @@ void JetReader::read() {
     // b-tagging: in Delphes tree, we have 0 or 1 (which tagger?)
     // Put some sensible translation:
     if( m_jet_btag->at(i) == 1 ) {
+      jet.set_btag_DeepFlavour_probbb( 0.9 );
       jet.set_btag_DeepFlavour_probb( 0.9 );
+      jet.set_btag_DeepFlavour_problepb( 0.9 );
       jet.set_btag_DeepCSV_probb(     0.9 );
       jet.set_btag_combinedSecondaryVertex( 0.9 );
       jet.set_btag_combinedSecondaryVertexMVA( 0.9 );
     } else {
+      jet.set_btag_DeepFlavour_probbb( 0.1 );
       jet.set_btag_DeepFlavour_probb( 0.1 );
+      jet.set_btag_DeepFlavour_problepb( 0.1 );
       jet.set_btag_DeepCSV_probb(     0.1 );
       jet.set_btag_combinedSecondaryVertex( 0.1 );
       jet.set_btag_combinedSecondaryVertexMVA( 0.1 );
@@ -77,5 +81,5 @@ void JetReader::read() {
 
     // Store Jet object in collection written to output file
     m_jets.push_back(jet);
-  }  
+  } 
 }

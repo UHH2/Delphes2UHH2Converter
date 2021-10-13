@@ -5,6 +5,8 @@
 
 #include "TChain.h"
 #include "TFile.h"
+#include "TH1.h"
+#include "TH1D.h"
 #include "TString.h"
 #include "TTree.h"
 
@@ -17,9 +19,12 @@
 #include "UHH2/core/include/MET.h"
 #include "UHH2/core/include/Muon.h"
 #include "UHH2/core/include/PrimaryVertex.h"
+#include "UHH2/common/include/Utils.h"
 
 #include "UHH2/Delphes2UHH2Converter/include/InputTreeProcessor.h"
 #include "UHH2/Delphes2UHH2Converter/include/Reader.h"
+#include "UHH2/Delphes2UHH2Converter/include/GenJetReader.h"
+#include "UHH2/Delphes2UHH2Converter/include/GenParticleReader.h"
 #include "UHH2/Delphes2UHH2Converter/include/JetReader.h"
 #include "UHH2/Delphes2UHH2Converter/include/MuonReader.h"
 
@@ -95,13 +100,25 @@ void run(const TString& in_file_name,
 
 
   // Set up the readers
+  GenParticleReader gen_particle_reader(genparticles);
+  GenJetReader gen_jet_reader(genjets);
   JetReader jet_reader(jets);
   MuonReader muon_reader(muons);
 
   InputTreeProcessor in_tree_processor(in_file_name,in_tree_name);
+  in_tree_processor.add_reader(&gen_particle_reader);
+  in_tree_processor.add_reader(&gen_jet_reader);
   in_tree_processor.add_reader(&jet_reader);
   in_tree_processor.add_reader(&muon_reader);
 
+  // Set up control plots
+  TH1* h_njets = new TH1D("h_njets","p_{T}>30 GeV, |#eta|<2.1;N(jets)",15,-0.5,14.5);
+  h_njets->SetDirectory(0);
+  TH1* h_ngenjets = new TH1D("h_ngenjets","p_{T}>30 GeV, |#eta|<2.1;N(gen jets)",15,-0.5,14.5);
+  h_ngenjets->SetDirectory(0);
+  TH1* h_response = new TH1D("h_response","Response (p^{gen}_{T}>25 GeV | p^{jet}_{T}>1 GeV);Response",41,0.5,1.5);
+  h_response->SetDirectory(0);
+  
   // Loop over the events
   while( in_tree_processor( n_evts ) ) {
 
@@ -117,13 +134,55 @@ void run(const TString& in_file_name,
     electrons.clear();
     electrons.push_back(Electron());
 
-    genjets.clear();
-    GenJet genjet1;
-    genjet1.set_pt(100);
-    genjets.push_back(genjet1);
+    // synch
+    // if( in_tree_processor.entry() < 5 ) {
+    //   std::cout << "\n\n>>> EVENT " << in_tree_processor.entry() << std::endl;
+    //   for(size_t i = 0; i < genjets.size(); ++i) {
+    // 	std::cout << "GEN JET " << i << " pt=" << genjets.at(i).pt() << " eta=" << genjets.at(i).eta() << " phi=" << genjets.at(i).phi() << std::endl;
+    //   }
+    //   for(size_t i = 0; i < jets.size(); ++i) {
+    // 	std::cout << "REC JET " << i << " pt=" << jets.at(i).pt() << " eta=" << jets.at(i).eta() << " phi=" << jets.at(i).phi() << std::endl;
+    //   }
+    // }
 
-    genparticles.clear();
-    genparticles.push_back(GenParticle());
+
+    // control plots
+    int njets = -1;
+    //std::cout << "\n\njet pts" << std::endl;
+    for(auto& jet: jets) {
+      //std::cout << jet.pt() << std::endl;
+      if( jet.pt() > 30. && std::abs(jet.eta()) < 2.1 ) njets++;
+    }
+    h_njets->Fill(njets);
+
+    int ngenjets = -1;
+    for(auto& genjet: genjets) {
+      if( genjet.pt() > 30. && std::abs(genjet.eta()) < 2.1 ) ngenjets++;
+    }
+    h_ngenjets->Fill(ngenjets);
+
+    if( genjets.size() && jets.size() ) {
+      for(auto& gj: genjets) {
+	if( gj.pt() > 25. ) {
+	  double deltaRmin = 1000;
+	  size_t rji = 0;
+	  for(size_t i = 0; i<jets.size(); ++i) {
+	    if( jets.at(i).pt() > 1. ) {
+	      const double dr = uhh2::deltaR(gj,jets.at(i));
+	      if(dr < deltaRmin) {
+		deltaRmin = dr;
+		rji = i;
+	      }
+	    }
+	  }
+	  if( deltaRmin < 0.4 ) {
+	    // std::cout << "GJ " << gj.eta() << ":" << gj.phi() << ":" << gj.pt() << std::endl;
+	    // std::cout << "RJ " << jets.at(rji).eta() << ":" << jets.at(rji).phi() << ":" << jets.at(rji).pt() << std::endl;
+	    h_response->Fill( jets.at(rji).pt() / gj.pt() );
+	  }
+	}
+      }
+    }
 
     out_tree->Fill();
   }
@@ -132,6 +191,9 @@ void run(const TString& in_file_name,
 
   TFile out_file(out_file_name,"RECREATE");
   out_file.WriteTObject(out_tree);
+  // out_file.WriteTObject(h_njets);
+  // out_file.WriteTObject(h_ngenjets);
+  // out_file.WriteTObject(h_response);
   out_file.Close();
 
 }
@@ -139,23 +201,23 @@ void run(const TString& in_file_name,
 
 int main(int argc, char** argv) {
 
-  if( argc < 2 ) {
+  if( argc < 3 ) {
     std::cout << "No input file given." << std::endl;
-    std::cout << "Execute as 'convertDelphes2UHH2 <input_file.root> [<max. number events>]'." << std::endl;
+    std::cout << "Execute as 'convertDelphes2UHH2 <input_file.root> <output_file.root> [<max. number events>]'." << std::endl;
     return 1;
   }
 
   const TString delphes_file( argv[1] );
   const TString delphes_tree = "Delphes";
-  const TString out_file = "Delphes2UHH2ConverterTree.root";
+  const TString out_file( argv[2] );
   
   int n_max_evts = -1;
-  if( argc > 2 ) {
+  if( argc > 3 ) {
     try {
-      n_max_evts = std::stoi( argv[2] );
+      n_max_evts = std::stoi( argv[3] );
     } catch (std::exception const &e) {
       std::cerr << "ERROR: second argument given is not an integer number" << std::endl;
-      std::cout << "Execute as 'convertDelphes2UHH2 <input_file.root> [<max. number events>]'." << std::endl;
+      std::cout << "Execute as 'convertDelphes2UHH2 <input_file.root> <output_file.root> [<max. number events>]'." << std::endl;
       return 1;
     }
   }
