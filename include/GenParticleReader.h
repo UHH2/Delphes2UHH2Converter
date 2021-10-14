@@ -22,6 +22,7 @@ private:
 
   std::vector<GenParticle>& m_gps;
 
+  std::vector<int> *m_gp_id;
   std::vector<float> *m_gp_pt;
   std::vector<float> *m_gp_eta;
   std::vector<float> *m_gp_phi;
@@ -29,12 +30,14 @@ private:
 
 GenParticleReader::GenParticleReader(std::vector<GenParticle> &gps)
   : m_muon_mass(0.105658), m_gps(gps) {
+  m_gp_id     = 0;
   m_gp_pt     = 0;
   m_gp_eta    = 0;
   m_gp_phi    = 0;
 }
 
 void GenParticleReader::init() {
+  m_chain->SetBranchAddress("gen_muon_id",&m_gp_id);
   m_chain->SetBranchAddress("gen_muon_pt",&m_gp_pt);
   m_chain->SetBranchAddress("gen_muon_eta",&m_gp_eta);
   m_chain->SetBranchAddress("gen_muon_phi",&m_gp_phi);
@@ -46,7 +49,7 @@ void GenParticleReader::read() {
   for(size_t i = 0; i < m_gp_pt->size(); ++i) {
     GenParticle gp;
 
-    // Kinematic properties, well defined
+    // Kinematic properties
     ROOT::Math::PtEtaPhiMVector v4( m_gp_pt->at(i),
 				    m_gp_eta->at(i),
 				    m_gp_phi->at(i),
@@ -56,6 +59,9 @@ void GenParticleReader::read() {
     gp.set_eta(    v4.Eta() );
     gp.set_phi(    v4.Phi() );
     gp.set_energy( v4.E()   );
+
+    // PDG ID
+    gp.set_pdgId( m_gp_id->at(i) );
 
     // Store GenParticle object in collection written to output file
     m_gps.push_back(gp);
