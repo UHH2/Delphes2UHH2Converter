@@ -27,6 +27,7 @@
 #include "UHH2/Delphes2UHH2Converter/include/GenParticleReader.h"
 #include "UHH2/Delphes2UHH2Converter/include/JetReader.h"
 #include "UHH2/Delphes2UHH2Converter/include/MuonReader.h"
+#include "UHH2/Delphes2UHH2Converter/include/ElectronReader.h"
 
 
 
@@ -104,12 +105,14 @@ void run(const TString& in_file_name,
   GenJetReader gen_jet_reader(genjets);
   JetReader jet_reader(jets);
   MuonReader muon_reader(muons);
+  ElectronReader electron_reader(electrons);
 
   InputTreeProcessor in_tree_processor(in_file_name,in_tree_name);
   in_tree_processor.add_reader(&gen_particle_reader);
   in_tree_processor.add_reader(&gen_jet_reader);
   in_tree_processor.add_reader(&jet_reader);
   in_tree_processor.add_reader(&muon_reader);
+  in_tree_processor.add_reader(&electron_reader);
 
   // Set up control plots
   TH1* h_njets = new TH1D("h_njets","p_{T}>30 GeV, |#eta|<2.1;N(jets)",15,-0.5,14.5);
@@ -130,9 +133,6 @@ void run(const TString& in_file_name,
 
     pvs.clear();
     pvs.push_back(PrimaryVertex());
-    
-    electrons.clear();
-    electrons.push_back(Electron());
 
     // synch
     // if( in_tree_processor.entry() < 5 ) {
