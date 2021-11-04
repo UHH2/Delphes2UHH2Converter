@@ -31,6 +31,9 @@ private:
   std::vector<float> *m_el_pt;
   std::vector<float> *m_el_eta;
   std::vector<float> *m_el_phi;
+
+  std::vector<size_t> idx_of_cleaned_collection(const std::vector<float>& pts, const std::vector<float>& etas) const;
+  bool is_equal(float a, float b) const;
 };
 
 GenParticleReader::GenParticleReader(std::vector<GenParticle> &gps)
@@ -58,20 +61,25 @@ void GenParticleReader::init() {
 
 void GenParticleReader::read() {
   m_gps.clear();
-  
-  for(size_t i = 0; i < m_mu_pt->size(); ++i) {
+
+  // HACK: clean gen muon collection from duplicates
+  std::vector<size_t> idxs = idx_of_cleaned_collection(*m_mu_pt,*m_mu_eta);
+
+  for(size_t i = 0; i < idxs.size(); ++i) {
+    const size_t idx = idxs.at(i);
+
     GenParticle gp;
 
-    ROOT::Math::PtEtaPhiMVector v4( m_mu_pt->at(i),
-				    m_mu_eta->at(i),
-				    m_mu_phi->at(i),
+    ROOT::Math::PtEtaPhiMVector v4( m_mu_pt->at(idx),
+				    m_mu_eta->at(idx),
+				    m_mu_phi->at(idx),
 				    m_muon_mass
 				    );
     gp.set_pt(     v4.Pt()  );
     gp.set_eta(    v4.Eta() );
     gp.set_phi(    v4.Phi() );
     gp.set_energy( v4.E()   );
-    gp.set_pdgId( m_mu_id->at(i) );
+    gp.set_pdgId( m_mu_id->at(idx) );
 
     // Store GenParticle object in collection written to output file
     m_gps.push_back(gp);
@@ -81,10 +89,10 @@ void GenParticleReader::read() {
     GenParticle gp;
 
     ROOT::Math::PtEtaPhiMVector v4( m_el_pt->at(i),
-				    m_el_eta->at(i),
-				    m_el_phi->at(i),
-				    m_electron_mass
-				    );
+  				    m_el_eta->at(i),
+  				    m_el_phi->at(i),
+  				    m_electron_mass
+  				    );
     gp.set_pt(     v4.Pt()  );
     gp.set_eta(    v4.Eta() );
     gp.set_phi(    v4.Phi() );
@@ -94,4 +102,33 @@ void GenParticleReader::read() {
     // Store GenParticle object in collection written to output file
     m_gps.push_back(gp);
   }  
+}
+
+
+// HOTFIX
+// For some reason, we have duplicated entries in the gen_muons
+// Return indices of cleaned (=duplicates removed) collection
+std::vector<size_t> GenParticleReader::idx_of_cleaned_collection(const std::vector<float>& pts, const std::vector<float>& etas) const {
+
+  std::vector<size_t> idx;
+  for(size_t i = 0; i < pts.size(); ++i) {
+    const float pt  = pts.at(i);
+    const float eta = etas.at(i);
+    bool is_duplicate = false;
+    for(size_t j = 0; j < idx.size(); ++j) {
+      if( is_equal(pt,pts.at(idx.at(j))) && is_equal(eta,etas.at(idx.at(j))) ) {
+	is_duplicate = true;
+	break;
+      }
+    }
+    if( !is_duplicate ) {
+      idx.push_back(i);
+    }
+  }
+
+  return idx;
+}
+
+bool GenParticleReader::is_equal(float a, float b) const {
+  return std::abs((a-b)/a) < 0.05;
 }

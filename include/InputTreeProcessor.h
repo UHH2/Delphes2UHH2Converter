@@ -46,7 +46,7 @@ bool InputTreeProcessor::load_next_event(int n_max_evts) {
   if( m_entry == n_max_evts ) {
     return false;
   }
-  if( m_entry % 2 == 0 ) {
+  if( m_entry % 1000 == 0 ) {
     std::cout << "Processing event " << m_entry << std::endl;
   }
   if( m_chain->GetEntry(m_entry) ) {
