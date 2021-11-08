@@ -127,21 +127,6 @@ void run(const TString& in_file_name,
     pvs.clear();
     pvs.push_back(PrimaryVertex());
 
-    // // debug
-    // int n_genmuons = genparticles.size();
-    // int n_recmuons = muons.size();
-    // if( n_genmuons > 0 ) {
-    //   std::cout << ">>>>>>> " << event << std::endl;
-    //   std::cout << " gen n: " << n_genmuons << std::endl;
-    //   for(size_t i = 0; i < genparticles.size(); ++i) {
-    // 	std::cout << "   pt/eta(" << i << "): " << genparticles.at(i).pt() << " / " << genparticles.at(i).eta() << std::endl;
-    //   }
-    //   std::cout << " rec n: " << n_recmuons << std::endl;
-    //   for(size_t i = 0; i < muons.size(); ++i) {
-    // 	std::cout << "   pt/eta(" << i << "): " << muons.at(i).pt() << " / " << muons.at(i).eta() << std::endl;
-    //   }
-    // }
-
     out_tree->Fill();
   }
 
