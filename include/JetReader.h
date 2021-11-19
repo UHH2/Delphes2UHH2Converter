@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include "Math/Vector4D.h"
+
 #include "UHH2/core/include/Jet.h"
 #include "UHH2/Delphes2UHH2Converter/include/Reader.h"
 
@@ -51,10 +53,17 @@ void JetReader::read() {
   for(size_t i = 0; i < m_jet_pt->size(); ++i) {
     Jet jet;
     
-    // Kinematic properties, well defined
-    jet.set_pt(  m_jet_pt->at(i)     );
-    jet.set_eta( m_jet_eta->at(i)    );
-    jet.set_phi( m_jet_phi->at(i)    );
+    // Kinematic properties
+    const ROOT::Math::PtEtaPhiMVector
+      v4( m_jet_pt->at(i),
+	  m_jet_eta->at(i),
+	  m_jet_phi->at(i),
+	  m_jet_mass->at(i) 
+	  );
+    jet.set_pt(     v4.Pt()  );
+    jet.set_eta(    v4.Eta() );
+    jet.set_phi(    v4.Phi() );
+    jet.set_energy( v4.E()   );
 
     // b-tagging: in Delphes tree, we have 0 or 1 (which tagger?)
     // Put some sensible translation:
