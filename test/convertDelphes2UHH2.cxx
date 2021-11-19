@@ -41,7 +41,7 @@ void run(const TString& in_file_name,
   int run = 1;
   int luminosityBlock = 0;
   long long event = 0;
-  std::string year = "2018";
+  std::string year = "2017";
   float rho = 22.6;
   float beamspot_x0 = 0;
   float beamspot_y0 = 0;
